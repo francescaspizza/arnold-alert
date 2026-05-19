@@ -1,0 +1,17 @@
+# NEVER commit credentials
+.env
+*.env
+
+# Logs (generated locally)
+*.log
+
+# State file (generated locally)
+.processed_emails.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
