@@ -1,0 +1,68 @@
+name: Arnold Alert
+
+on:
+  schedule:
+    # All times in UTC. Adelaide is UTC+9:30 (ACST) or UTC+10:30 (ACDT daylight saving)
+    - cron: '5 2 * * *'   # 11:35am ACST / 12:35pm ACDT
+    - cron: '5 6 * * *'   # 3:35pm ACST  / 4:35pm ACDT
+    - cron: '5 12 * * *'  # 9:35pm ACST  / 10:35pm ACDT
+    - cron: '30 12 * * *' # 10:00pm ACST — daily report
+  workflow_dispatch:       # Allow manual trigger from GitHub website
+
+jobs:
+  arnold-check:
+    runs-on: ubuntu-latest
+    # Skip the daily report job — that runs separately below
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' &&
+       (github.event.schedule == '5 2 * * *' ||
+        github.event.schedule == '5 6 * * *' ||
+        github.event.schedule == '5 12 * * *'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Arnold Alert
+        env:
+          GMAIL_ADDRESS:        ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD:   ${{ secrets.GMAIL_APP_PASSWORD }}
+          ELEVENLABS_API_KEY:   ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID:  ${{ secrets.ELEVENLABS_VOICE_ID }}
+          TWILIO_ACCOUNT_SID:   ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN:    ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER:  ${{ secrets.TWILIO_PHONE_NUMBER }}
+        run: python arnold_alert.py
+
+  daily-report:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' &&
+      github.event.schedule == '30 12 * * *'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Send daily report
+        env:
+          GMAIL_ADDRESS:       ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python daily_report.py
