@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 # ── Load .env ────────────────────────────────────────────────────────────────
 def load_env(env_path):
     if not Path(env_path).exists():
-        print(f"❌  .env not found"); sys.exit(1)
+        return  # Running in GitHub Actions — credentials come from environment secrets
     with open(env_path) as f:
         for line in f:
             line = line.strip()
@@ -35,7 +35,7 @@ REPORT_TO      = GMAIL_ADDRESS  # sends to yourself
 # ── Parse today's log ────────────────────────────────────────────────────────
 def parse_log():
     if not LOG_FILE.exists():
-        return [], [], [], []
+        return [], [], [], []  # No log — GitHub Actions doesn't write a local log file
 
     runs, calls, errors, checklist_hits = [], [], [], []
 
@@ -72,7 +72,7 @@ def build_email(runs, calls, errors, checklist_hits):
     if runs:
         run_status = f"✅  Ran {len(runs)} time(s) today at: {', '.join(runs)}"
     else:
-        run_status = "⚠️   No runs detected today — check that your Mac was open at 11:35am, 3:35pm, and 9:35pm."
+        run_status = "⚠️   No runs detected today (log not available — this is normal when running via GitHub Actions)."
 
     if checklist_hits:
         hit_lines = "\n".join(f"  • {h}" for h in checklist_hits)
