@@ -135,59 +135,85 @@ def save_processed(ids):
 
 def fetch_restoke_emails():
     """
-    Connect to Gmail via IMAP and return a list of (email_id, subject) tuples
-    for unread Restoke incomplete-checklist emails not yet processed.
+    Connect to Gmail via IMAP and return a list of (msg_id, subject) tuples
+    for Restoke incomplete-checklist emails not yet processed.
+    Checks both INBOX (unread) and All Mail (today's emails, catches archived).
     """
     processed = load_processed()
     results = []
+    seen_msg_ids = set()
 
     log.info("Connecting to Gmail IMAP...")
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
     mail.login(GMAIL_ADDRESS, GMAIL_APP_PASS)
-    mail.select("inbox")
 
-    # Search unread messages mentioning the trigger phrase
-    _, data = mail.search(None, '(UNSEEN SUBJECT "Procedure was not completed")')
-    email_ids = data[0].split() if data[0] else []
-    log.info("Found %d unread candidate email(s).", len(email_ids))
+    def scan_folder(folder, search_criteria):
+        try:
+            mail.select(folder)
+        except Exception as e:
+            log.warning("Could not select folder %s: %s", folder, e)
+            return
 
-    for eid in email_ids:
-        eid_str = eid.decode()
-        if eid_str in processed:
-            continue
+        _, data = mail.search(None, search_criteria)
+        ids = data[0].split() if data[0] else []
+        log.info("%s: %d candidate(s).", folder, len(ids))
 
-        _, msg_data = mail.fetch(eid, "(RFC822)")
-        msg = email.message_from_bytes(msg_data[0][1])
+        for eid in ids:
+            _, msg_data = mail.fetch(eid, "(RFC822)")
+            msg = email.message_from_bytes(msg_data[0][1])
 
-        subject = decode_header_str(msg.get("Subject", ""))
-        sender  = decode_header_str(msg.get("From", ""))
+            # Use Message-ID header as a globally unique key
+            msg_id  = msg.get("Message-ID", f"{folder}-{eid.decode()}").strip()
+            subject = decode_header_str(msg.get("Subject", ""))
+            sender  = decode_header_str(msg.get("From", ""))
 
-        # Confirm sender is from Restoke
-        if "restoke" not in sender.lower():
-            log.info("Skipping email %s — sender not Restoke: %s", eid_str, sender)
-            processed.add(eid_str)
-            continue
+            # Deduplicate within this run (All Mail includes inbox emails too)
+            if msg_id in seen_msg_ids:
+                continue
+            seen_msg_ids.add(msg_id)
 
-        # Confirm subject matches expected pattern
-        if "procedure was not completed" not in subject.lower():
-            processed.add(eid_str)
-            continue
+            # Already handled in a previous run
+            if msg_id in processed:
+                continue
 
-        log.info("Matched Restoke email: %s", subject)
-        results.append((eid_str, subject))
+            if "restoke" not in sender.lower():
+                log.info("Skipping — not from Restoke: %s", sender)
+                processed.add(msg_id)
+                continue
+
+            if "procedure was not completed" not in subject.lower():
+                processed.add(msg_id)
+                continue
+
+            log.info("Matched Restoke email: %s", subject)
+            results.append((msg_id, subject))
+
+    # Search 1: INBOX — unread only (fast path, most common case)
+    scan_folder("inbox", '(UNSEEN SUBJECT "Procedure was not completed")')
+
+    # Search 2: All Mail — today's emails regardless of read/archived status
+    # This catches emails that were accidentally archived before being seen
+    today_str = datetime.now().strftime("%d-%b-%Y")  # e.g. 21-May-2026
+    scan_folder('"[Gmail]/All Mail"', f'(ON {today_str} SUBJECT "Procedure was not completed")')
 
     mail.logout()
     return results, processed
 
-def mark_email_read(email_id):
-    """Mark a Gmail message as read so it won't be picked up again."""
+
+def mark_email_read(msg_id):
+    """Find the email by Message-ID in All Mail and mark it as read."""
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(GMAIL_ADDRESS, GMAIL_APP_PASS)
-        mail.select("inbox")
-        mail.store(email_id.encode(), '+FLAGS', '\\Seen')
+        mail.select('"[Gmail]/All Mail"')
+        # Strip angle brackets for the search
+        clean_id = msg_id.strip("<>").replace('"', "")
+        _, data = mail.search(None, f'HEADER Message-ID "{clean_id}"')
+        ids = data[0].split() if data[0] else []
+        for eid in ids:
+            mail.store(eid, "+FLAGS", "\\Seen")
         mail.logout()
-        log.info("Marked email %s as read.", email_id)
+        log.info("Marked email as read: %s", msg_id[:60])
     except Exception as e:
         log.warning("Could not mark email as read: %s", e)
 
@@ -325,7 +351,7 @@ def make_twilio_call(to_number, audio_url, location="the store", checklist="unkn
         f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Calls.json",
         auth=(TWILIO_SID, TWILIO_TOKEN),
         data={
-            "To":   to_number,
+            "To":    to_number,
             "From":  TWILIO_FROM,
             "Twiml": twiml,
         },
