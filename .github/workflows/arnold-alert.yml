@@ -3,9 +3,9 @@ name: Arnold Alert
 on:
   schedule:
     # All times in UTC. Adelaide is UTC+9:30 (ACST) or UTC+10:30 (ACDT daylight saving)
-    - cron: '5 2 * * *'   # 11:35am ACST / 12:35pm ACDT
-    - cron: '5 6 * * *'   # 3:35pm ACST  / 4:35pm ACDT
-    - cron: '5 12 * * *'  # 9:35pm ACST  / 10:35pm ACDT
+    - cron: '35 2 * * *'  # 12:05pm ACST — catches Opening Checklist (~11:48am)
+    - cron: '5 4 * * *'   # 1:35pm ACST  — catches Morning Audit + Morning Fridge Temps (~1:18pm)
+    - cron: '35 6 * * *'  # 4:05pm ACST  — catches Sando Shut Down Mid-Day Reset (~3:48pm)
     - cron: '30 12 * * *' # 10:00pm ACST — daily report
   workflow_dispatch:       # Allow manual trigger from GitHub website
 
@@ -16,9 +16,9 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' &&
-       (github.event.schedule == '5 2 * * *' ||
-        github.event.schedule == '5 6 * * *' ||
-        github.event.schedule == '5 12 * * *'))
+       (github.event.schedule == '35 2 * * *' ||
+        github.event.schedule == '5 4 * * *' ||
+        github.event.schedule == '35 6 * * *'))
 
     steps:
       - name: Checkout code
