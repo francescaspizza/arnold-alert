@@ -147,9 +147,23 @@ def main():
     log.info("  Targets: %s", ", ".join(s[0].title() for s in stores))
     log.info("━" * 55)
 
-    # Generate audio once, reuse for both calls
-    audio_bytes = generate_audio()
-    audio_url = host_audio(audio_bytes)
+    # Log credential presence (not values) to help diagnose failures
+    log.info("Credential check — ElevenLabs key: %s, Voice ID: %s, Twilio SID: %s",
+             "SET" if ELEVENLABS_KEY else "MISSING",
+             "SET" if ELEVENLABS_VOICE else "MISSING",
+             "SET" if TWILIO_SID else "MISSING")
+
+    # Try to generate Arnold audio — fall back to <Say> if ElevenLabs fails
+    audio_url = None
+    try:
+        audio_bytes = generate_audio()
+        audio_url = host_audio(audio_bytes)
+    except requests.HTTPError as e:
+        log.error("ElevenLabs error: %s — %s", e, e.response.text if e.response else "")
+        log.warning("Falling back to Twilio <Say> for all calls.")
+    except Exception as e:
+        log.error("Audio generation failed: %s", e)
+        log.warning("Falling back to Twilio <Say> for all calls.")
 
     for store_name, phone in stores:
         try:
