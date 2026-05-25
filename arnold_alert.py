@@ -12,7 +12,7 @@ Run on a schedule (every 10 min) via launchd — see README in this folder.
 import imaplib
 import email
 import re
-import os
+import 
 import sys
 import json
 import logging
@@ -59,7 +59,7 @@ STORE_PHONES = {
 }
 
 # ── Business hours (Adelaide / ACST) ─────────────────────────────────────────
-HOUR_START = 7   # 7 am
+HOUR_START = 12   # 712am
 HOUR_END   = 22  # 10 pm
 
 # ── State file — tracks processed email IDs to avoid repeat calls ─────────────
