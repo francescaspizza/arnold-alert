@@ -2,23 +2,25 @@ name: Arnold Alert
 
 on:
   schedule:
-    # All times in UTC. Adelaide is UTC+9:30 (ACST) or UTC+10:30 (ACDT daylight saving)
-    - cron: '35 2 * * *'  # 12:05pm ACST — catches Opening Checklist (~11:48am)
-    - cron: '5 4 * * *'   # 1:35pm ACST  — catches Morning Audit + Morning Fridge Temps (~1:18pm)
-    - cron: '35 6 * * *'  # 4:05pm ACST  — catches Sando Shut Down Mid-Day Reset (~3:48pm)
-    - cron: '30 12 * * *' # 10:00pm ACST — daily report
-  workflow_dispatch:       # Allow manual trigger from GitHub website
+    # All times in UTC. Adelaide is UTC+9:30 (ACST, Apr-Oct) or UTC+10:30 (ACDT, Oct-Apr)
+    # Target: 12:00pm-9:30pm Adelaide time, every 15 min, year-round.
+    # ACST:  12:00pm = 02:30 UTC,  9:30pm = 12:00 UTC
+    # ACDT:  12:00pm = 01:30 UTC,  9:30pm = 11:00 UTC
+    # Window covers both: 01:30-12:00 UTC. arnold_alert.py checks Adelaide time itself.
+    - cron: '30,45 1 * * *'    # covers 12:00pm-12:15pm ACDT start
+    - cron: '*/15 2-11 * * *'  # every 15 min through the main window
+    - cron: '0 12 * * *'       # 9:30pm ACST / 10:30pm ACDT tail
+    - cron: '30 12 * * *'      # 10:00pm ACST -- daily report
+  workflow_dispatch:           # Allow manual trigger from GitHub website
 
 jobs:
   arnold-check:
     runs-on: ubuntu-latest
-    # Skip the daily report job — that runs separately below
+    # Run on all schedules except the daily report cron
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' &&
-       (github.event.schedule == '35 2 * * *' ||
-        github.event.schedule == '5 4 * * *' ||
-        github.event.schedule == '35 6 * * *'))
+       github.event.schedule != '30 12 * * *')
 
     steps:
       - name: Checkout code
