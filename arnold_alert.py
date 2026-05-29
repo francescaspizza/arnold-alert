@@ -12,7 +12,7 @@ Run on a schedule (every 10 min) via launchd — see README in this folder.
 import imaplib
 import email
 import re
-import  os
+import os
 import sys
 import json
 import logging
@@ -59,8 +59,8 @@ STORE_PHONES = {
 }
 
 # ── Business hours (Adelaide / ACST) ─────────────────────────────────────────
-HOUR_START = 11  # 11 am
-HOUR_END   = 22  # 10 pm
+HOUR_START = 12  # 12 pm
+HOUR_END   = 22  # 10 pm (covers 9:30pm cutoff)
 
 # ── State file — tracks processed email IDs to avoid repeat calls ─────────────
 STATE_FILE = Path(__file__).parent / ".processed_emails.json"
@@ -191,10 +191,26 @@ def fetch_restoke_emails():
     # Search 1: INBOX — unread only (fast path, most common case)
     scan_folder("inbox", '(UNSEEN SUBJECT "Procedure was not completed")')
 
-    # Search 2: All Mail — today's emails regardless of read/archived status
-    # This catches emails that were accidentally archived before being seen
-    today_str = datetime.now().strftime("%d-%b-%Y")  # e.g. 21-May-2026
+    # Search 2: All Mail — today's AND yesterday's emails in Adelaide time.
+    # Uses Adelaide local date (not UTC) so the search matches the correct calendar day.
+    # Also checks yesterday to catch late-night emails where Adelaide date differs from UTC date.
+    try:
+        from zoneinfo import ZoneInfo as _ZoneInfo
+        _tz = _ZoneInfo("Australia/Adelaide")
+    except Exception:
+        try:
+            import pytz as _pytz
+            _tz = _pytz.timezone("Australia/Adelaide")
+        except Exception:
+            from datetime import timezone as _tz_mod, timedelta as _td
+            _tz = _tz_mod(_td(hours=9, minutes=30))
+    from datetime import timedelta as _timedelta
+    _now_adl = datetime.now(_tz)
+    today_str     = _now_adl.strftime("%d-%b-%Y")
+    yesterday_str = (_now_adl - _timedelta(days=1)).strftime("%d-%b-%Y")
+    log.info("Searching All Mail for Adelaide dates: %s and %s", today_str, yesterday_str)
     scan_folder('"[Gmail]/All Mail"', f'(ON {today_str} SUBJECT "Procedure was not completed")')
+    scan_folder('"[Gmail]/All Mail"', f'(ON {yesterday_str} SUBJECT "Procedure was not completed")')
 
     mail.logout()
     return results, processed
