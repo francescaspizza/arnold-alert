@@ -8,7 +8,6 @@ and places an outbound Twilio call to the relevant store.
 
 Run on a schedule (every 10 min) via launchd — see README in this folder.
 """
-
 import imaplib
 import email
 import re
@@ -48,6 +47,7 @@ GMAIL_ADDRESS    = os.environ.get("GMAIL_ADDRESS", "")
 GMAIL_APP_PASS   = os.environ.get("GMAIL_APP_PASSWORD", "")
 ELEVENLABS_KEY   = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "")
+ELEVENLABS_VOICE_BACKUP = os.environ.get("ELEVENLABS_VOICE_ID_FALLBACK", "")
 TWILIO_SID       = os.environ.get("TWILIO_ACCOUNT_SID", "")
 TWILIO_TOKEN     = os.environ.get("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM      = os.environ.get("TWILIO_PHONE_NUMBER", "")
@@ -275,11 +275,10 @@ ARNOLD_TEMPLATE = (
 )
 
 def generate_arnold_audio(location, checklist):
-    """Generate Arnold TTS via ElevenLabs. Returns raw mp3 bytes."""
+    """Generate TTS via ElevenLabs. Tries primary voice then fallback. Returns raw mp3 bytes."""
     message = ARNOLD_TEMPLATE.format(location=location, checklist=checklist)
     log.info("Generating ElevenLabs audio for: %s", message[:60] + "...")
 
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}"
     headers = {
         "xi-api-key": ELEVENLABS_KEY,
         "Content-Type": "application/json",
@@ -291,16 +290,24 @@ def generate_arnold_audio(location, checklist):
         "voice_settings": {"stability": 0.45, "similarity_boost": 0.80},
     }
 
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
-    resp.raise_for_status()
-    log.info("ElevenLabs audio generated: %d bytes", len(resp.content))
-    return resp.content
+    voices = [(v, label) for v, label in [
+        (ELEVENLABS_VOICE, "primary (Jerry B)"),
+        (ELEVENLABS_VOICE_BACKUP, "fallback (Gotham Boss)"),
+    ] if v]
 
+    last_error = None
+    for voice_id, label in voices:
+        try:
+            url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            resp.raise_for_status()
+            log.info("ElevenLabs audio generated with %s voice: %d bytes", label, len(resp.content))
+            return resp.content
+        except requests.HTTPError as e:
+            log.warning("Voice %s failed: %s — trying next...", label, e)
+            last_error = e
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Audio hosting — file.io (free, no account needed, auto-expires after 1h)
-# ─────────────────────────────────────────────────────────────────────────────
-
+    raise last_error or RuntimeError("No ElevenLabs voices configured")
 def host_audio(audio_bytes):
     """Upload mp3 and return a public URL. Tries multiple hosts, returns None if all fail."""
     hosts = [
