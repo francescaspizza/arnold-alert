@@ -90,11 +90,11 @@ def is_business_hours():
     try:
         from zoneinfo import ZoneInfo
         tz = ZoneInfo("Australia/Adelaide")
-    except ImportError:
+    except Exception:
         try:
             import pytz
             tz = pytz.timezone("Australia/Adelaide")
-        except ImportError:
+        except Exception:
             # Fallback: UTC+9:30, close enough
             from datetime import timezone, timedelta
             tz = timezone(timedelta(hours=9, minutes=30))
