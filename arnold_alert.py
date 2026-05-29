@@ -356,6 +356,40 @@ def host_audio(audio_bytes):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Failure notification
+# ─────────────────────────────────────────────────────────────────────────────
+
+def send_failure_email(location, checklist, error_detail):
+    """Email aman@francescas.com.au when a Twilio call fails to connect."""
+    import smtplib
+    from email.mime.text import MIMEText
+
+    to_addr   = "aman@francescas.com.au"
+    from_addr = GMAIL_ADDRESS
+    subject   = f"Arnold Alert \u2014 call FAILED: {location} / {checklist}"
+    body = (
+        f"Hi Aman,\n\n"
+        f"Arnold Alert tried to call {location} about the '{checklist}' checklist "
+        f"but the call did NOT go through.\n\n"
+        f"Error: {error_detail}\n\n"
+        f"Please follow up with the store directly.\n\n"
+        f"— Arnold Alert"
+    )
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"]    = from_addr
+    msg["To"]      = to_addr
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(GMAIL_ADDRESS, GMAIL_APP_PASS)
+            server.sendmail(from_addr, [to_addr], msg.as_string())
+        log.info("Failure notification email sent to %s", to_addr)
+    except Exception as e:
+        log.error("Could not send failure notification email: %s", e)
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Twilio call
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -435,10 +469,13 @@ def main():
             call_sid = make_twilio_call(phone, audio_url, location, checklist)
             log.info("✅  Call placed successfully — SID: %s", call_sid)
         except requests.HTTPError as e:
-            log.error("Twilio HTTP error: %s — %s", e, e.response.text if e.response else "")
+            detail = e.response.text if e.response else str(e)
+            log.error("Twilio HTTP error: %s — %s", e, detail)
+            send_failure_email(location, checklist, f"Twilio HTTP error: {detail}")
             continue
         except Exception as e:
             log.error("Twilio unexpected error: %s", e)
+            send_failure_email(location, checklist, str(e))
             continue
 
         processed.add(email_id)
