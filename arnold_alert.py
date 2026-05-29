@@ -205,7 +205,7 @@ def fetch_restoke_emails():
             from datetime import timezone as _tz_mod, timedelta as _td
             _tz = _tz_mod(_td(hours=9, minutes=30))
     from datetime import timedelta as _timedelta
-    _now_adl = datetime.now(_tz)
+    _now_adl = datetime.now(_ty)
     today_str     = _now_adl.strftime("%d-%b-%Y")
     yesterday_str = (_now_adl - _timedelta(days=1)).strftime("%d-%b-%Y")
     log.info("Searching All Mail for Adelaide dates: %s and %s", today_str, yesterday_str)
@@ -413,16 +413,25 @@ def main():
         phone = get_phone_number(location)
         log.info("Target phone: %s", phone)
 
+        # Try to generate Arnold audio; fall back to <Say> if ElevenLabs fails
+        audio_url = None
         try:
             audio_bytes = generate_arnold_audio(location, checklist)
             audio_url   = host_audio(audio_bytes)
-            call_sid    = make_twilio_call(phone, audio_url, location, checklist)
+        except requests.HTTPError as e:
+            log.warning("ElevenLabs HTTP error (will use <Say> fallback): %s — %s",
+                        e, e.response.text if e.response else "")
+        except Exception as e:
+            log.warning("ElevenLabs error (will use <Say> fallback): %s", e)
+
+        try:
+            call_sid = make_twilio_call(phone, audio_url, location, checklist)
             log.info("✅  Call placed successfully — SID: %s", call_sid)
         except requests.HTTPError as e:
-            log.error("HTTP error: %s — %s", e, e.response.text if e.response else "")
+            log.error("Twilio HTTP error: %s — %s", e, e.response.text if e.response else "")
             continue
         except Exception as e:
-            log.error("Unexpected error: %s", e)
+            log.error("Twilio unexpected error: %s", e)
             continue
 
         processed.add(email_id)
