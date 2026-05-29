@@ -205,7 +205,7 @@ def fetch_restoke_emails():
             from datetime import timezone as _tz_mod, timedelta as _td
             _tz = _tz_mod(_td(hours=9, minutes=30))
     from datetime import timedelta as _timedelta
-    _now_adl = datetime.now(_ty)
+    _now_adl = datetime.now(_tz)
     today_str     = _now_adl.strftime("%d-%b-%Y")
     yesterday_str = (_now_adl - _timedelta(days=1)).strftime("%d-%b-%Y")
     log.info("Searching All Mail for Adelaide dates: %s and %s", today_str, yesterday_str)
