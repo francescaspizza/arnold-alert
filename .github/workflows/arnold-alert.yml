@@ -2,19 +2,19 @@ name: Arnold Alert
 
 on:
   schedule:
-    - cron: '30,45 1 * * *'
-    - cron: '*/15 2-11 * * *'
-    - cron: '0 12 * * *'
-    - cron: '30 12 * * *'
-  workflow_dispatch:
+    # All times in UTC. Adelaide is UTC+9:30 (ACST, Apr–Oct) or UTC+10:30 (ACDT, Oct–Apr)
+    # Target: 12:00pm–9:30pm Adelaide time, every 15 min, year-round.
+    # ACST:  12:00pm = 02:30 UTC,  9:30pm = 12:00 UTC
+    # ACDT:  12:00pm = 01:30 UTC,  9:30pm = 11:00 UTC
+    # Window covers both: 01:30–12:00 UTC. arnold_alert.py checks Adelaide time itself.
+    - cron: '30,45 1 * * *'    # covers 12:00pm–12:15pm ACDT start
+    - cron: '*/15 2-11 * * *'  # every 15 min through the main window
+    - cron: '0 12 * * *'       # 9:30pm ACST / 10:30pm ACDT tail
+  workflow_dispatch:           # Allow manual trigger from GitHub website
 
 jobs:
   arnold-check:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' &&
-       github.event.schedule != '30 12 * * *')
 
     steps:
       - name: Checkout code
@@ -47,27 +47,3 @@ jobs:
           TWILIO_AUTH_TOKEN:    ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_PHONE_NUMBER:  ${{ secrets.TWILIO_PHONE_NUMBER }}
         run: python arnold_alert.py
-
-  daily-report:
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'schedule' &&
-      github.event.schedule == '30 12 * * *'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Send daily report
-        env:
-          GMAIL_ADDRESS:       ${{ secrets.GMAIL_ADDRESS }}
-          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python daily_report.py
