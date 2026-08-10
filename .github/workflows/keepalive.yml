@@ -1,0 +1,24 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # 1st of every month
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update keepalive timestamp
+        run: |
+          echo "Last keepalive: $(date -u)" > .keepalive
+          git config user.name "Arnold Alert Bot"
+          git config user.email "aman@francescas.com.au"
+          git add .keepalive
+          git commit -m "chore: keepalive $(date -u +%Y-%m-%d)"
+          git push
