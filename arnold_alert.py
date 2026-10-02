@@ -56,6 +56,7 @@ TWILIO_FROM      = os.environ.get("TWILIO_PHONE_NUMBER", "")
 STORE_PHONES = {
     "glenelg": "+61882694075",
     "brighton": "+61883678417",
+    "christies": "+61483706885",
 }
 
 # ── Business hours (Adelaide / ACST) ─────────────────────────────────────────
@@ -257,8 +258,8 @@ def get_phone_number(location):
     for keyword, phone in STORE_PHONES.items():
         if keyword in loc_lower:
             return phone
-    log.warning("No store match for location '%s' — defaulting to Brighton.", location)
-    return STORE_PHONES["brighton"]
+    log.warning("No store match for location '%s' — no call placed.", location)
+    return None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -292,7 +293,7 @@ def generate_arnold_audio(location, checklist):
 
     voices = [(v, label) for v, label in [
         (ELEVENLABS_VOICE, "primary (Jerry B)"),
-        (ELEVENLABS_VOICE_BACKUP, "fallback (Gotham Boss)"),
+        (ELEVENLABS_VOICE_BACKUP, "fallback"),
     ] if v]
 
     last_error = None
@@ -452,6 +453,11 @@ def main():
         log.info("Checklist: %s", checklist)
 
         phone = get_phone_number(location)
+        if not phone:
+            send_failure_email(location, checklist,
+                f"No phone number is set up for '{location}'. Add it to STORE_PHONES in arnold_alert.py.")
+            processed.add(email_id)
+            continue
         log.info("Target phone: %s", phone)
 
         # Try to generate Arnold audio; fall back to <Say> if ElevenLabs fails
