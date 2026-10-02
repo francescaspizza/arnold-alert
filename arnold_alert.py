@@ -275,9 +275,54 @@ ARNOLD_TEMPLATE = (
     "I will be back to check. That is a promise."
 )
 
+# ── Alert scripts: edit alert_scripts.txt to change what the calls say ──────
+SCRIPTS_FILE     = Path(__file__).parent / "alert_scripts.txt"
+LAST_SCRIPT_FILE = Path(__file__).parent / ".last_script"
+DEFAULT_SCRIPT   = ("Hi {location}, {checklist} hasn't been done yet. "
+                    "Jump on Restoke and tick it off. Grazie!")
+
+
+def load_scripts():
+    """Read alert_scripts.txt: one script per paragraph, # lines are notes."""
+    try:
+        text = SCRIPTS_FILE.read_text(encoding="utf-8")
+    except Exception as e:
+        log.warning("Could not read %s (%s), using default script.", SCRIPTS_FILE.name, e)
+        return [DEFAULT_SCRIPT]
+    scripts = []
+    for para in re.split(r"\n\s*\n", text):
+        lines = [l.strip() for l in para.splitlines() if l.strip() and not l.strip().startswith("#")]
+        if lines:
+            scripts.append(" ".join(lines))
+    return scripts or [DEFAULT_SCRIPT]
+
+
+def pick_script():
+    """Random script, never the same as the previous call."""
+    import random
+    scripts = load_scripts()
+    try:
+        last = LAST_SCRIPT_FILE.read_text(encoding="utf-8").strip()
+    except Exception:
+        last = None
+    script = random.choice([s for s in scripts if s != last] or scripts)
+    try:
+        LAST_SCRIPT_FILE.write_text(script, encoding="utf-8")
+    except Exception:
+        pass
+    return script
+
+
+def spoken(script, location, checklist):
+    """Fill in a script, tidying names so they read naturally out loud."""
+    loc = re.sub(r"^Francesca['’]?s\s+", "", location.strip(), flags=re.IGNORECASE) or location
+    chk = " ".join(checklist.replace("--", " ").split())
+    return script.replace("{location}", loc).replace("{checklist}", chk)
+
+
 def generate_arnold_audio(location, checklist):
     """Generate TTS via ElevenLabs. Tries primary voice then fallback. Returns raw mp3 bytes."""
-    message = ARNOLD_TEMPLATE.format(location=location, checklist=checklist)
+    message = spoken(pick_script(), location, checklist)
     log.info("Generating ElevenLabs audio for: %s", message[:60] + "...")
 
     headers = {
