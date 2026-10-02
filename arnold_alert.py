@@ -60,7 +60,8 @@ STORE_PHONES = {
 }
 
 # ── Business hours (Adelaide / ACST) ─────────────────────────────────────────
-HOUR_START = 12  # 12 pm
+HOUR_START   = 11  # 11:30 am start
+MINUTE_START = 30
 HOUR_END   = 22  # 10 pm (covers 9:30pm cutoff)
 
 # ── State file — tracks processed email IDs to avoid repeat calls ─────────────
@@ -100,7 +101,7 @@ def is_business_hours():
             from datetime import timezone, timedelta
             tz = timezone(timedelta(hours=9, minutes=30))
     now = datetime.now(tz)
-    return HOUR_START <= now.hour < HOUR_END
+    return (now.hour, now.minute) >= (HOUR_START, MINUTE_START) and now.hour < HOUR_END
 
 
 def decode_header_str(value):
@@ -474,7 +475,7 @@ def main():
     validate_credentials()
 
     if not is_business_hours():
-        log.info("Outside business hours (7am–10pm Adelaide) — nothing to do.")
+        log.info("Outside business hours (11:30am–10pm Adelaide) — nothing to do.")
         return
 
     emails, processed = fetch_restoke_emails()
