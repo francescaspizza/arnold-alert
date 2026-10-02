@@ -2,6 +2,17 @@ name: Arnold Alert — Test Calls
 
 on:
   workflow_dispatch:
+    inputs:
+      store:
+        description: 'Which store to call'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - glenelg
+          - brighton
+          - christies
 
 jobs:
   test-calls:
@@ -18,11 +29,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Place test calls to both stores
+      - name: Place test calls
         env:
           ELEVENLABS_API_KEY:  ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
           TWILIO_ACCOUNT_SID:  ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN:   ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-        run: python test_call.py
+        run: python test_call.py ${{ inputs.store }}
