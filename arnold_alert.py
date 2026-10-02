@@ -288,7 +288,7 @@ def generate_arnold_audio(location, checklist):
     payload = {
         "text": message,
         "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.45, "similarity_boost": 0.80},
+        "voice_settings": {"stability": 0.30, "similarity_boost": 0.80, "style": 0.35},
     }
 
     voices = [(v, label) for v, label in [
