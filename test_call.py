@@ -48,6 +48,7 @@ TWILIO_FROM      = os.environ.get("TWILIO_PHONE_NUMBER", "")
 STORE_PHONES = {
     "glenelg": "+61882694075",
     "brighton": "+61883678417",
+    "christies": "+61483706885",
 }
 
 # ── Test message ──────────────────────────────────────────────────────────────
@@ -133,13 +134,13 @@ def make_call(store_name, phone, audio_url):
 
 def main():
     # Determine which stores to call
-    target = sys.argv[1].lower() if len(sys.argv) > 1 else "both"
-    if target == "both":
+    target = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
+    if target in ("both", "all"):
         stores = list(STORE_PHONES.items())
     elif target in STORE_PHONES:
         stores = [(target, STORE_PHONES[target])]
     else:
-        print(f"Unknown store '{target}'. Use: glenelg, brighton, or leave blank for both.")
+        print(f"Unknown store '{target}'. Use: glenelg, brighton, christies, or all.")
         sys.exit(1)
 
     log.info("━" * 55)
