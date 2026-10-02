@@ -1,0 +1,90 @@
+# ARNOLD ALERT SCRIPTS (Silvia, conversational)
+# Edit this file to change what the alert calls say.
+# One script per paragraph. Leave a blank line between scripts.
+# Each call picks one at random, never the same one twice in a row.
+# {location} = the store, read out as e.g. "Christies Beach"
+# {checklist} = the checklist, e.g. "Sando Shut Down Mid-Day Reset"
+# Don't write "the {checklist} checklist". Some names already end in "Checklist",
+# so it would say "Opening Checklist checklist".
+# Don't promise a follow-up call. Arnold Alert only calls once per missed checklist.
+# Lines starting with # are notes and are never read out.
+
+Hey {location}, it's me again. So, {checklist} hasn't been done yet. Not by you, not by your mate, not even by the guy pretending to look busy with the tongs. Put down whatever you're holding. Unless it's pizza. Never put down the pizza. Jump on Restoke, tick it off, and you're done. Grazie!
+
+Ciao {location}! Quick one. {checklist} isn't done. Pop the tongs down, open Restoke, and tick it off. Two minutes, tops. Grazie!
+
+Hi {location}, just a little heads up. {checklist} hasn't been ticked off yet. I know, I know, you're busy. Jump on Restoke and knock it over, yeah? Grazie.
+
+{location}, we need to talk. It's about {checklist}. It's not done. I'm not angry, I'm just a little disappointed. Open Restoke and let's fix this together. Okay? Grazie.
+
+Okay {location}, good news and bad news. Good news, you've only got one job right now. Bad news, it's {checklist}, and it's not done. Jump on Restoke, tick the boxes, and we'll never speak of this again.
+
+Ciao {location}! Random question. Who's doing {checklist} today? Nobody? Interesting. Well, somebody is now. Open Restoke and get it done. Grazie, legend.
+
+Hi {location}, don't worry, this isn't about your car warranty. It's about {checklist}. It hasn't been done. Open Restoke, sort it out, and I'll let you get back to it. Ciao!
+
+Hey {location}. Imagine a world where {checklist} is already done. Beautiful, right? Let's make it real. Open Restoke and tick it off. Grazie!
+
+Ciao {location}. Somewhere out there, a health inspector is smiling. Let's keep it that way. {checklist} isn't done yet. Open Restoke and get it sorted.
+
+{location}, the pizza is art. The sandos are art. {checklist}? That's paperwork. But paperwork is art too, if you actually do it. Open Restoke and make some art. Grazie!
+
+Hey {location}. I've checked everything. The dough's good. The vibes are good. {checklist}? Not good. Not done. Jump on Restoke and make it good. Grazie!
+
+Ciao {location}, friendly reminder. {checklist} doesn't do itself. Trust me, I've asked it nicely. Open Restoke and tick it off.
+
+Hey {location}, it's me again. You know why I'm calling. {checklist}. Jump on Restoke, get it done, and we're all good. Grazie!
+
+{location}, listen. Francesca would be very disappointed. {checklist} isn't done. Don't make me tell Francesca. Open Restoke. Like, now. Grazie.
+
+Ciao {location}. {checklist} is running late. Unlike the pizza, it's not worth the wait. Jump on Restoke and get it done.
+
+Hey {location}! Short version. {checklist}. Not done. Restoke. Now. Grazie!
+
+Hi {location}, I've got one hobby, and it's calling you about {checklist}. Please give me a new hobby. Open Restoke and get it done. Grazie!
+
+Ciao {location}. Good news, the pizza's perfect. Bad news, {checklist} isn't done. Jump on Restoke, finish it, then go back to being brilliant.
+
+Hey {location}, can I be honest with you? {checklist} isn't done. That's it. That's the call. Open Restoke and fix it. Grazie!
+
+Ciao {location}. Everything's looking great. Except one thing. {checklist}. It's not done. Jump on Restoke and that'll be looking great too. Grazie!
+
+Ciao {location}! Fun fact. {checklist} is the only thing in the building that isn't done. Even the dough's done. Jump on Restoke and catch up with the dough.
+
+Hey {location}, I ran the numbers. There's a one hundred percent chance {checklist} isn't done. Open Restoke and prove my maths wrong. Grazie!
+
+Knock knock, {location}. Who's there? {checklist}. {checklist} who? Exactly. Everyone forgot it. Open Restoke and get it done. Grazie!
+
+Hi {location}, this is a wellness check. Not for you, for {checklist}. It's not doing great. It's not done. Open Restoke and nurse it back to health.
+
+Ciao {location}. I'm not saying anyone forgot {checklist}. I'm just saying it's not done, and I'm calling about it. Draw your own conclusions. Then open Restoke.
+
+Hey {location}. The oven runs hot. Our standards run hotter. {checklist} isn't done. Open Restoke and turn up the heat. Grazie!
+
+{location}, plot twist. {checklist} still isn't done. Jump on Restoke and write a better ending. Grazie!
+
+Ciao {location}. In this kitchen we do things properly. Usually. {checklist} isn't done. Open Restoke and turn usually into always.
+
+Hey {location}, I'll be honest, I'd love a slice right now. But I'm calling about {checklist} instead. It's not done. Open Restoke and tick it off. Grazie!
+
+Ciao {location}. Someone left {checklist} on read. Rude. Jump on Restoke and give it a proper reply.
+
+Hey {location}, a little bird told me {checklist} isn't done. Okay, the bird is me. Open Restoke and get it sorted. Grazie!
+
+Mamma mia, {location}! {checklist} isn't done. Jump on Restoke, tick it off, and I'll pretend this call never happened.
+
+Ciao {location}! Today's special is {checklist}. It's only served once you actually do it. Open Restoke and get it on the pass.
+
+Hey {location}. I've got two moods. Proud and disappointed. Right now I'm disappointed, because {checklist} isn't done. Open Restoke and switch me back to proud.
+
+Hi {location}. Everyone forgets things, it happens. Today it's {checklist}. That's why I call. Open Restoke and get it done. Grazie!
+
+Ciao {location}. Great pizza is all in the details. So is {checklist}. It's not done. Open Restoke and sweat the small stuff.
+
+Hey {location}, this'll take two minutes. Open Restoke, knock out {checklist}, and get back on the line. Two minutes. I'm timing you. Dai!
+
+{location}, breaking news. Local kitchen forgets {checklist}. Everyone is shocked. Jump on Restoke and change the headline. Grazie!
+
+Ciao {location}. You're legends, and legends do {checklist}. It's not done yet. Open Restoke and prove me right.
+
+Hey {location}, I could be calling about anything. Lotto numbers. Free pizza. Sadly, it's {checklist}. It's not done. Jump on Restoke. Grazie!
