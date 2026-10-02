@@ -72,7 +72,7 @@ def generate_audio():
     payload = {
         "text": TEST_MESSAGE,
         "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.45, "similarity_boost": 0.80},
+        "voice_settings": {"stability": 0.30, "similarity_boost": 0.80, "style": 0.35},
     }
     resp = requests.post(url, headers=headers, json=payload, timeout=30)
     resp.raise_for_status()
