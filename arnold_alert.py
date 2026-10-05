@@ -59,10 +59,10 @@ STORE_PHONES = {
     "christies": "+61483706885",
 }
 
-# ── Business hours (Adelaide / ACST) ─────────────────────────────────────────
-HOUR_START   = 11  # 11:30 am start
-MINUTE_START = 30
-HOUR_END   = 22  # 10 pm (covers 9:30pm cutoff)
+# ── Alert windows (Adelaide time) ────────────────────────────────────────────
+# cron-job.org triggers a run at :00 :15 :30 :45 inside these hours.
+# Calls are only placed inside these windows. Anything missed waits for the next one.
+ALERT_WINDOWS = [(11, 12), (16, 17)]  # 11am–12pm and 4pm–5pm
 
 # ── State file — tracks processed email IDs to avoid repeat calls ─────────────
 STATE_FILE = Path(__file__).parent / ".processed_emails.json"
@@ -88,7 +88,7 @@ def validate_credentials():
 
 
 def is_business_hours():
-    """Return True if current Adelaide time is between 7am and 10pm."""
+    """Return True if current Adelaide time is inside an alert window."""
     try:
         from zoneinfo import ZoneInfo
         tz = ZoneInfo("Australia/Adelaide")
@@ -101,7 +101,7 @@ def is_business_hours():
             from datetime import timezone, timedelta
             tz = timezone(timedelta(hours=9, minutes=30))
     now = datetime.now(tz)
-    return (now.hour, now.minute) >= (HOUR_START, MINUTE_START) and now.hour < HOUR_END
+    return any(start <= now.hour < end for start, end in ALERT_WINDOWS)
 
 
 def decode_header_str(value):
@@ -475,7 +475,7 @@ def main():
     validate_credentials()
 
     if not is_business_hours():
-        log.info("Outside business hours (11:30am–10pm Adelaide) — nothing to do.")
+        log.info("Outside alert windows (11am–12pm, 4pm–5pm Adelaide) — nothing to do.")
         return
 
     emails, processed = fetch_restoke_emails()
