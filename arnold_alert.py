@@ -62,7 +62,7 @@ STORE_PHONES = {
 # ── Alert windows (Adelaide time) ────────────────────────────────────────────
 # cron-job.org triggers a run at :00 :15 :30 :45 inside these hours.
 # Calls are only placed inside these windows. Anything missed waits for the next one.
-ALERT_WINDOWS = [(11, 12), (16, 17)]  # 11am–12pm and 4pm–5pm
+ALERT_WINDOWS = [(11, 12), (15, 16)]  # 11am–12pm and 3pm–4pm
 
 # ── State file — tracks processed email IDs to avoid repeat calls ─────────────
 STATE_FILE = Path(__file__).parent / ".processed_emails.json"
@@ -475,7 +475,7 @@ def main():
     validate_credentials()
 
     if not is_business_hours():
-        log.info("Outside alert windows (11am–12pm, 4pm–5pm Adelaide) — nothing to do.")
+        log.info("Outside alert windows (11am–12pm, 3pm–4pm Adelaide) — nothing to do.")
         return
 
     emails, processed = fetch_restoke_emails()
