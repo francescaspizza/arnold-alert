@@ -1,16 +1,10 @@
 name: Arnold Alert
 
 on:
-  schedule:
-    # All times in UTC. Adelaide is UTC+9:30 (ACST, Apr–Oct) or UTC+10:30 (ACDT, Oct–Apr)
-    # Target: 11:30am–10pm Adelaide time, every 15 min, year-round.
-    # ACST:  11:30am = 02:00 UTC
-    # ACDT:  11:30am = 01:00 UTC
-    # Window covers both: 01:00–12:00 UTC. arnold_alert.py checks Adelaide time itself.
-    - cron: '*/15 1 * * *'     # 11:30am ACDT start (daylight saving)
-    - cron: '*/15 2-11 * * *'  # every 15 min through the main window
-    - cron: '0 12 * * *'       # 9:30pm ACST / 10:30pm ACDT tail
-  workflow_dispatch:           # Allow manual trigger from GitHub website
+  # Started by cron-job.org (job "Arnold Alert") at :00 :15 :30 :45 from 11am and 3pm Adelaide.
+  # GitHub's own schedule was removed on 8 Oct 2026: it only ran ~4 times a day.
+  # Do not delete the cron-job.org job, it is the only trigger.
+  workflow_dispatch:
 
 jobs:
   arnold-check:
